@@ -1,4 +1,4 @@
-# ✈️ Airport Simulator — Havalimanları için Check-in Simülatörü
+# ✈️ Airport Simulator - Havalimanları için Check-in Simülatörü
 
 Tarayıcıda çalışan, havalimanı check-in alanı tasarlayıp yolcu akışını simüle eden bir planlama ve analiz aracı.
 
