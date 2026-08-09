@@ -1,0 +1,324 @@
+/* style.popups.css: loaded right after style.editor.css. The mini run-2..N
+   panel strip, plus the Settings, Tile Usage, and Tile Operations modals. */
+
+/* --- Mini simulation runs (2..N, N is user-selectable and uncapped) ---
+   a horizontally scrollable strip, so the panel count never has to shrink to fit */
+#mini-sims {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  height: 170px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  border-top: 1px solid #333a48;
+  background: #171b22;
+}
+
+.mini-sim {
+  display: flex;
+  flex-direction: column;
+  /* sized so exactly 4 fit the row edge-to-edge; a 5th+ panel scrolls instead
+     of squeezing everyone smaller (flex-shrink: 0 holds this width) */
+  flex: 1 0 calc(25% - 6px);
+  min-width: 110px;
+  min-height: 0;
+  scroll-snap-align: start;
+  border: 1px solid #333a48;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #14171e;
+}
+
+.mini-label {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #9aa3b2;
+  padding: 3px 8px;
+  border-bottom: 1px solid #2a3140;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-time {
+  color: #e8eaed;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-sim.done .mini-label,
+.mini-sim.done .mini-time {
+  color: #5be08a;
+}
+
+.mini-sim canvas {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: block;
+}
+
+/* --- Settings popup: wide, two columns, no vertical scrolling needed --- */
+.settings-panel {
+  width: min(1040px, 95vw);
+  max-height: 90vh;
+  padding: 30px 36px;
+}
+
+.settings-body {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 44px;
+  align-items: start;
+  margin-top: 6px;
+}
+
+.settings-col-grid {
+  border-right: 1px solid #333a48;
+  padding-right: 36px;
+}
+
+.settings-col .section-title {
+  margin-bottom: 18px;
+}
+
+.settings-panel .field-row {
+  margin-bottom: 16px;
+}
+
+.settings-panel .slider-row {
+  margin: -4px 0 22px;
+}
+
+.settings-col-grid #generate-btn {
+  margin-top: 6px;
+}
+
+.process-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 40px;
+}
+
+.process-op {
+  padding-bottom: 8px;
+}
+
+/* --- Tile usage popup --- */
+.usage-panel {
+  width: min(920px, 94vw);
+}
+
+.usage-note {
+  font-size: 12px;
+  color: #9aa3b2;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.usage-table-scroll {
+  overflow: auto;
+  max-height: 58vh;
+  border: 1px solid #2a3140;
+  border-radius: 8px;
+}
+
+.usage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: #c3c9d4;
+}
+
+.usage-table th,
+.usage-table td {
+  padding: 4px 6px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.usage-table th:first-child,
+.usage-table td:first-child {
+  text-align: left;
+}
+
+.usage-table th:first-child,
+.usage-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: #232833;
+  z-index: 1;
+}
+
+.usage-table thead th {
+  position: sticky;
+  top: 0;
+  color: #9aa3b2;
+  font-weight: 600;
+  background: #232833;
+  border-bottom: 1px solid #333a48;
+  padding-bottom: 6px;
+  z-index: 2;
+}
+
+.usage-table thead th:first-child {
+  z-index: 3;
+}
+
+.usage-type-row td {
+  font-weight: 700;
+  font-size: 13px;
+  color: #e8eaed;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-top: 18px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #3a4356;
+}
+
+.usage-section-note {
+  font-weight: 400;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: normal;
+  color: #9aa3b2;
+  margin-left: 8px;
+}
+
+.usage-tile-row td {
+  font-weight: 700;
+  font-size: 12px;
+  padding-top: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #2a3140;
+}
+
+.usage-total-row td {
+  font-weight: 700;
+  color: #e8eaed;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #333a48;
+}
+
+.usage-table .avg-col {
+  color: #e8eaed;
+  font-weight: 600;
+  border-right: 1px solid #2a3140;
+}
+
+/* --- Tile Operations popup: which ops each tile type performs --- */
+.operations-panel {
+  width: min(1150px, 96vw);
+}
+
+.tile-ops-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 16px;
+  color: #c3c9d4;
+}
+
+.tile-ops-table th:first-child,
+.tile-ops-table td:first-child {
+  width: 130px;
+}
+
+.tile-ops-table th:not(:first-child),
+.tile-ops-table td:not(:first-child) {
+  width: calc((100% - 130px) / 4);
+}
+
+.tile-ops-table th,
+.tile-ops-table td {
+  padding: 22px 26px;
+  text-align: center;
+}
+
+.tile-ops-table thead th {
+  color: #9aa3b2;
+  font-weight: 600;
+  font-size: 15px;
+  border-bottom: 1px solid #333a48;
+  padding-bottom: 18px;
+}
+
+.tile-ops-table tbody td:first-child,
+.tile-ops-table thead th:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+
+.tile-ops-table tbody tr:not(:last-child) td {
+  border-bottom: 1px solid #2a3140;
+}
+
+.tile-ops-table tbody td:not(:first-child),
+.tile-ops-table thead th:not(:first-child) {
+  border-left: 1px solid #262c38;
+}
+
+.tile-ops-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 7px;
+}
+
+.tile-ops-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.tile-ops-img-frame {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 190px;
+  background: #10141c;
+  border-radius: 10px;
+  border: 1px solid #333a48;
+  padding: 6px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.tile-ops-img {
+  display: block;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.tile-ops-img-placeholder {
+  opacity: 0.25;
+  border-radius: 6px;
+}
+
+.tile-ops-table input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: #5b8cff;
+  cursor: pointer;
+}
+
+.tile-ops-table input[type="checkbox"]:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+#grid-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none; /* let touch input place/erase tiles instead of scrolling */
+}
+

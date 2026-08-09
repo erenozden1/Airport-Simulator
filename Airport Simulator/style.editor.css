@@ -1,0 +1,820 @@
+/* style.css is split by theme into style.editor.css, style.popups.css, and
+   style.responsive.css (each <=1000 lines). Load in that exact order —
+   cascade/specificity ties resolve by source order, so swapping them could
+   change which rule wins.
+   style.editor.css: the two main full-screen states — the grid editor
+   (sidebar, canvas, tile cards, palette, success-rate/cost styling) and the
+   post-run boarding animation. */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: #1b1f27;
+  color: #e8eaed;
+}
+
+.screen {
+  width: 100vw;
+  height: 100vh;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.section-title {
+  font-size: 14px;
+  margin: 0 0 10px;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.field-row label {
+  font-size: 12px;
+  color: #c3c9d4;
+}
+
+.field-row input {
+  width: 70px;
+  flex-shrink: 0;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #3a4152;
+  background: #1b1f27;
+  color: #e8eaed;
+  font-size: 13px;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -4px 0 14px;
+}
+
+.slider {
+  flex: 1;
+  width: auto;
+  margin: 0;
+  accent-color: #5b8cff;
+  cursor: pointer;
+}
+
+.slider-value {
+  min-width: 34px;
+  text-align: right;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: #c3c9d4;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #5b8cff;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tileops-btn {
+  margin-bottom: 10px;
+}
+
+.primary-btn:hover {
+  background: #4a78e6;
+}
+
+.error-text {
+  color: #ff6b6b;
+  font-size: 13px;
+  margin: 0;
+}
+
+.error-text:not(:empty) {
+  margin-top: 8px;
+}
+
+/* --- Editor screen --- */
+#editor-screen {
+  display: flex;
+}
+
+#palette {
+  width: clamp(220px, 20vw, 260px);
+  flex-shrink: 0;
+  background: #232833;
+  border-right: 1px solid #333a48;
+  padding: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#tile-panel {
+  width: clamp(230px, 20vw, 270px);
+  flex-shrink: 0;
+  background: #232833;
+  border-left: 1px solid #333a48;
+  padding: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-family: "Trebuchet MS", "Gill Sans", "Segoe UI", sans-serif;
+  letter-spacing: 0.01em;
+}
+
+#tile-panel button {
+  font-family: inherit;
+}
+
+#tile-panel .tile-name {
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+/* lock only the tile/worker cards during a run, so the Assumptions button stays usable */
+#tile-list.locked,
+#worker-list.locked {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.assumptions-btn {
+  padding: 14px;
+  font-size: 16px;
+}
+
+.hint-btn {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e8eaed;
+  opacity: 1;
+  padding: 10px;
+}
+
+.tile-counts {
+  font-size: 12px;
+  color: #c3c9d4;
+  margin-bottom: 10px;
+}
+
+.tile-card {
+  border: 1px solid #3a4152;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.tile-card:hover {
+  border-color: #5b8cff;
+}
+
+.tile-card.active {
+  border-color: #5b8cff;
+  background: rgba(91, 140, 255, 0.12);
+}
+
+.tile-card .tile-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tile-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.worker-swatch {
+  border-radius: 50%;
+}
+
+.tile-name {
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.tile-size {
+  font-size: 11px;
+  color: #9aa3b2;
+  flex-shrink: 0;
+  background: #1b1f27;
+  border: 1px solid #3a4152;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.tile-cost {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffcf3f;
+  background: rgba(255, 207, 63, 0.12);
+  border: 1px solid rgba(255, 207, 63, 0.35);
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin-top: 5px;
+}
+
+.layout-cost {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffcf3f;
+  background: rgba(255, 207, 63, 0.1);
+  border: 1px solid rgba(255, 207, 63, 0.35);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-top: 10px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.success-rate-label {
+  font-size: 10px;
+  color: #7c8496;
+  margin-top: 6px;
+}
+
+.success-rate-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.success-rate-btn {
+  flex: 1 1 auto;
+  min-width: 28px;
+  padding: 3px 4px;
+  font-size: 10px;
+  font-family: inherit;
+  border-radius: 4px;
+  border: 1px solid #3a4152;
+  background: #1b1f27;
+  color: #c3c9d4;
+  cursor: pointer;
+  text-align: center;
+}
+
+.success-rate-btn:hover {
+  border-color: #5b8cff;
+}
+
+.success-rate-btn.active {
+  background: #5b8cff;
+  border-color: #5b8cff;
+  color: #fff;
+  font-weight: 700;
+}
+
+.tile-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tile-controls label {
+  font-size: 11px;
+  color: #9aa3b2;
+}
+
+.tile-controls input {
+  width: 55px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid #3a4152;
+  background: #1b1f27;
+  color: #e8eaed;
+  font-size: 12px;
+}
+
+.tile-slider {
+  width: 100%;
+  margin: 6px 0 2px;
+  accent-color: #5b8cff;
+  cursor: pointer;
+}
+
+.orient-btn {
+  margin-top: 8px;
+  width: 100%;
+  padding: 5px;
+  font-size: 11px;
+  border-radius: 5px;
+  border: 1px solid #3a4152;
+  background: #1b1f27;
+  color: #c3c9d4;
+  cursor: pointer;
+}
+
+.orient-btn:hover {
+  border-color: #5b8cff;
+}
+
+.tool-divider {
+  height: 1px;
+  background: #333a48;
+  margin: 14px 0;
+}
+
+/* extra breathing room around the divider between the run presets and the Start/Reset row */
+.sim-block .tool-divider {
+  margin: 22px 0;
+}
+
+.tool-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tool-btn {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #3a4152;
+  background: #1b1f27;
+  color: #c3c9d4;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tool-btn:hover:not(:disabled) {
+  border-color: #ff6b6b;
+  color: #fff;
+}
+
+.tool-btn.active {
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.12);
+  color: #fff;
+}
+
+.tool-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.danger-btn {
+  border-color: #a04040;
+  color: #ff8a8a;
+  font-weight: 600;
+}
+
+.danger-btn:hover:not(:disabled) {
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.15);
+  color: #fff;
+}
+
+.sim-block h2 {
+  font-size: 14px;
+  margin: 0 0 10px;
+}
+
+.sim-field {
+  margin-bottom: 10px;
+}
+
+.sim-field label {
+  display: block;
+  font-size: 11px;
+  color: #9aa3b2;
+  margin-bottom: 4px;
+}
+
+.sim-field label span {
+  color: #e8eaed;
+  font-weight: 600;
+}
+
+.sim-field .slider {
+  width: 100%;
+}
+
+.preset-row {
+  display: flex;
+  gap: 8px;
+  margin: -4px 0 12px;
+}
+
+.preset-row .preset-btn {
+  flex: 1;
+}
+
+.sim-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.sim-buttons .primary-btn {
+  flex: 1;
+  padding: 7px;
+  font-size: 13px;
+}
+
+.sim-buttons .tool-btn {
+  flex: 1;
+}
+
+.status-block {
+  font-size: 11px;
+  color: #9aa3b2;
+  line-height: 1.8;
+}
+
+.status-block span {
+  color: #e8eaed;
+  font-weight: 600;
+}
+
+/* sim timer floats over the top-right of the canvas */
+#sim-timer-box {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 20;
+  padding: 10px 16px 18px; /* extra padding below the digits */
+  background: rgba(35, 40, 51, 0.9);
+  border: 1px solid #333a48;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  pointer-events: none; /* clicks pass through to the canvas underneath */
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #c3c9d4;
+  margin: 4px 0 12px;
+  cursor: pointer;
+}
+
+.check-row input {
+  accent-color: #5b8cff;
+  cursor: pointer;
+}
+
+/* --- Boarding page (post-run, before results) --- */
+.boarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* neutral apron ambience — grounded, not sky */
+  background: linear-gradient(180deg, #3f434b 0%, #2b2e34 100%);
+}
+
+.boarding-inner {
+  width: min(1100px, 94vw);
+  height: min(80vh, 680px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.boarding-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  text-transform: uppercase;
+}
+
+#boarding-canvas {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: block;
+}
+
+.boarding-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.boarding-count {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.18);
+  padding: 6px 18px;
+  border-radius: 20px;
+}
+
+.boarding-mood-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  padding: 6px 16px;
+  border-radius: 20px;
+}
+
+.boarding-mood-slider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.boarding-mood-slider .slider {
+  width: 80px;
+}
+
+/* farewell wave, shown between the boarding page closing and the report opening */
+.wave-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: linear-gradient(180deg, #3f434b 0%, #2b2e34 100%);
+}
+
+.wave-hand {
+  font-size: min(60vw, 62vh);
+  line-height: 1;
+  transform-origin: 70% 70%;
+  animation: wave-hand-swing 0.6s ease-in-out infinite;
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4));
+}
+
+@keyframes wave-hand-swing {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(18deg); }
+  75% { transform: rotate(-10deg); }
+}
+
+.wave-caption {
+  font-size: clamp(24px, 4vw, 40px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  text-transform: uppercase;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-panel {
+  background: #232833;
+  border: 1px solid #333a48;
+  border-radius: 12px;
+  width: min(560px, 90vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 20px 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.modal-header h2 {
+  font-size: 17px;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #9aa3b2;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.modal-close:hover {
+  color: #fff;
+}
+
+.assumptions-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #c3c9d4;
+  line-height: 1.6;
+}
+
+.assumptions-list li {
+  margin-bottom: 8px;
+}
+
+.summary-panel {
+  width: min(760px, 92vw);
+}
+
+.summary-hero {
+  background: rgba(91, 140, 255, 0.12);
+  border: 1px solid #5b8cff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.summary-hero-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9aa3b2;
+  margin-bottom: 4px;
+}
+
+.summary-hero-value {
+  font-size: 32px;
+  font-weight: 800;
+  color: #e8eaed;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+
+.summary-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #7c8496;
+  margin: 16px 0 8px;
+}
+
+.summary-section-title-warn {
+  color: #ffb648;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.summary-card {
+  background: #1b2029;
+  border: 1px solid #333a48;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-card-label {
+  font-size: 11px;
+  color: #9aa3b2;
+  line-height: 1.3;
+}
+
+.summary-card-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e8eaed;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-card-note {
+  font-size: 11px;
+  color: #7c8496;
+  line-height: 1.4;
+}
+
+.summary-suggest-card {
+  background: rgba(255, 182, 72, 0.08);
+  border: 1px solid rgba(255, 182, 72, 0.4);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.summary-suggest {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #c3c9d4;
+  line-height: 1.5;
+}
+
+.summary-suggest li {
+  margin-bottom: 6px;
+}
+
+.summary-suggest li:last-child {
+  margin-bottom: 0;
+}
+
+.summary-usage-btn {
+  margin-top: 16px;
+}
+
+.summary-close-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 13px;
+  font-size: 15px;
+  background: #3a4152;
+}
+
+.summary-close-btn:hover {
+  background: #454e63;
+}
+
+.summary-failed {
+  background: rgba(255, 107, 107, 0.15);
+  border: 1px solid #ff6b6b;
+  color: #ff8a8a;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.timer-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9aa3b2;
+  margin-bottom: 4px;
+}
+
+.timer-display {
+  font-size: 34px;
+  font-weight: 700;
+  color: #e8eaed;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+#canvas-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #14171e;
+  min-width: 0;
+}
+
+#main-canvas-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+

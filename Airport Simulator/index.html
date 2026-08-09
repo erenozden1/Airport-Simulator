@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Airport Grid Editor</title>
+  <!-- style.css is split by theme (each file <=1000 lines); order matters for cascade -->
+  <link rel="stylesheet" href="style.editor.css" />
+  <link rel="stylesheet" href="style.popups.css" />
+  <link rel="stylesheet" href="style.responsive.css" />
+</head>
+<body>
+  <div id="editor-screen" class="screen">
+    <aside id="palette">
+      <h2 class="section-title" data-i18n="passengers">Passengers</h2>
+      <div class="field-row">
+        <label for="num-passengers" data-i18n="numPassengers">Number of Passengers</label>
+        <input id="num-passengers" type="number" min="10" max="500" value="50" />
+      </div>
+      <div class="preset-row">
+        <button type="button" class="tool-btn preset-btn" data-passengers="50">50</button>
+        <button type="button" class="tool-btn preset-btn" data-passengers="100">100</button>
+        <button type="button" class="tool-btn preset-btn" data-passengers="200">200</button>
+      </div>
+      <div class="field-row">
+        <label for="pct-online" data-i18n="pctOnline">Online check-in %</label>
+        <input id="pct-online" type="number" min="0" max="100" value="50" />
+      </div>
+      <div class="slider-row">
+        <input id="pct-online-slider" type="range" class="slider" min="0" max="100" value="50" />
+        <span id="pct-online-slider-value" class="slider-value">50</span>
+      </div>
+      <div class="field-row">
+        <label for="pct-kiosk-online" data-i18n="pctKioskOnline">Online checked-in passengers printing a boarding pass %</label>
+        <input id="pct-kiosk-online" type="number" min="0" max="100" value="30" />
+      </div>
+      <div class="slider-row">
+        <input id="pct-kiosk-online-slider" type="range" class="slider" min="0" max="100" value="30" />
+        <span id="pct-kiosk-online-slider-value" class="slider-value">30</span>
+      </div>
+      <div class="field-row">
+        <label for="pct-cabin" data-i18n="pctCabin">Cabin-bag only %</label>
+        <input id="pct-cabin" type="number" min="0" max="100" value="40" />
+      </div>
+      <div class="slider-row">
+        <input id="pct-cabin-slider" type="range" class="slider" min="0" max="100" value="40" />
+        <span id="pct-cabin-slider-value" class="slider-value">40</span>
+      </div>
+      <button id="operations-btn" class="primary-btn tileops-btn" data-i18n="tileOpsBtn">Tile Operations</button>
+      <button id="settings-btn" class="primary-btn" data-i18n="settings">Advanced Settings</button>
+
+      <div class="tool-divider"></div>
+
+      <div class="tool-group">
+        <button id="clear-grid-btn" class="tool-btn danger-btn" data-i18n="clearGrid">Clear grid</button>
+        <button id="rotate-hint-btn" class="tool-btn hint-btn" disabled data-i18n="leftClickRotate">Left-click: rotate</button>
+        <button id="pan-hint-btn" class="tool-btn hint-btn" disabled data-i18n="rightClickDelete">Right-click: delete</button>
+      </div>
+
+      <button id="assumptions-btn" class="primary-btn assumptions-btn" data-i18n="assumptions">Assumptions</button>
+
+      <div class="tool-divider"></div>
+
+      <div class="sim-block">
+        <h2 class="section-title" data-i18n="simulation">Simulation</h2>
+        <div class="field-row">
+          <label for="num-runs" data-i18n="numRuns">Number of Runs</label>
+          <input id="num-runs" type="number" min="1" value="5" />
+        </div>
+        <div class="preset-row">
+          <button type="button" class="tool-btn preset-btn" data-runs="5">5</button>
+          <button type="button" class="tool-btn preset-btn" data-runs="10">10</button>
+          <button type="button" class="tool-btn preset-btn" data-runs="15">15</button>
+        </div>
+
+        <div class="tool-divider"></div>
+
+        <div class="sim-buttons">
+          <button id="sim-start" class="primary-btn">Start</button>
+          <button id="sim-speed" class="tool-btn" title="Simulation speed">1x</button>
+          <button id="sim-reset" class="tool-btn" data-i18n="reset">Reset</button>
+        </div>
+        <p id="sim-error" class="error-text"></p>
+
+        <div id="layout-cost" class="layout-cost"></div>
+      </div>
+    </aside>
+
+    <main id="canvas-wrap">
+      <div id="sim-timer-box" class="status-block">
+        <div class="timer-label" data-i18n="simTime">Simulation time</div>
+        <div id="status-timer" class="timer-display">00:00</div>
+      </div>
+      <div id="main-canvas-area">
+        <canvas id="grid-canvas"></canvas>
+      </div>
+      <div id="mini-sims"><!-- populated by rebuildMiniPanels() in app.js --></div>
+    </main>
+
+    <aside id="tile-panel">
+      <h2 class="section-title" data-i18n="tiles">Tiles</h2>
+      <div id="tile-counts" class="tile-counts"></div>
+      <div id="tile-list"></div>
+
+      <div class="tool-divider"></div>
+
+      <h2 class="section-title" data-i18n="workersTitle">Workers</h2>
+      <p class="usage-note" data-i18n="workersNote">Interns and officers don't process passengers themselves — they speed up nearby machines' visit times.</p>
+      <div id="worker-counts" class="tile-counts"></div>
+      <div id="worker-list"></div>
+    </aside>
+  </div>
+
+  <div id="assumptions-modal" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2 data-i18n="assumptions">Assumptions</h2>
+        <button id="assumptions-close" class="modal-close" title="Close">&times;</button>
+      </div>
+      <ul id="assumptions-list" class="assumptions-list"></ul>
+    </div>
+  </div>
+
+  <div id="summary-modal" class="modal-overlay hidden">
+    <div class="modal-panel summary-panel">
+      <div class="modal-header">
+        <h2 data-i18n="summaryTitle">Simulation Summary</h2>
+        <button id="summary-close" class="modal-close" title="Close">&times;</button>
+      </div>
+      <div id="summary-content"></div>
+      <button id="summary-close-bottom" class="primary-btn summary-close-btn" data-i18n="close">Close</button>
+    </div>
+  </div>
+
+  <div id="boarding-modal" class="boarding-overlay hidden">
+    <div class="boarding-inner">
+      <div class="boarding-title" data-i18n="boarding">Now boarding</div>
+      <canvas id="boarding-canvas"></canvas>
+      <div class="boarding-footer">
+        <div class="boarding-count"><span id="boarding-count-val">0</span> / <span id="boarding-total-val">0</span></div>
+        <div class="boarding-mood-controls">
+          <label class="boarding-mood-slider" title="Happy mood under (min)">
+            <span>😊&lt;</span>
+            <input id="boarding-mood-happy-slider" type="range" class="slider" min="1" max="15" value="3" />
+            <span id="boarding-mood-happy-value">3</span>
+          </label>
+          <label class="boarding-mood-slider" title="Angry mood over (min)">
+            <span>😡&gt;</span>
+            <input id="boarding-mood-angry-slider" type="range" class="slider" min="1" max="30" value="8" />
+            <span id="boarding-mood-angry-value">8</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="wave-overlay" class="wave-overlay hidden">
+    <div class="wave-hand">👋</div>
+    <div class="wave-caption" data-i18n="waveCaption">Bon voyage!</div>
+  </div>
+
+  <div id="usage-modal" class="modal-overlay hidden">
+    <div class="modal-panel usage-panel">
+      <div class="modal-header">
+        <h2 data-i18n="usageTitle">Tile Usage</h2>
+        <button id="usage-close" class="modal-close" title="Close">&times;</button>
+      </div>
+      <div id="usage-content"></div>
+    </div>
+  </div>
+
+  <div id="operations-modal" class="modal-overlay hidden">
+    <div class="modal-panel operations-panel">
+      <div class="modal-header">
+        <h2 data-i18n="tileOpsTitle">Tile Operations</h2>
+        <button id="operations-close" class="modal-close" title="Close">&times;</button>
+      </div>
+      <p class="usage-note" data-i18n="tileOpsNote">Which operations each tile type can perform. Locked (greyed-out) boxes are either physically impossible for that machine, or — for the staffed counter — always on, since it handles everything by design.</p>
+      <div id="tile-ops-body"><!-- populated by buildTileOpsGrid() in app.js --></div>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-panel settings-panel">
+      <div class="modal-header">
+        <h2 data-i18n="settings">Advanced Settings</h2>
+        <button id="settings-close" class="modal-close" title="Close">&times;</button>
+      </div>
+
+      <div class="settings-body">
+        <div class="settings-col settings-col-grid">
+          <h3 class="section-title" data-i18n="grid">Grid</h3>
+          <div class="field-row">
+            <label for="grid-width" data-i18n="width">Width (cols)</label>
+            <input id="grid-width" type="number" min="20" max="30" value="25" />
+          </div>
+          <div class="slider-row">
+            <input id="grid-width-slider" type="range" class="slider" min="20" max="30" value="25" />
+            <span id="grid-width-slider-value" class="slider-value">25</span>
+          </div>
+          <div class="field-row">
+            <label for="grid-height" data-i18n="height">Height (rows)</label>
+            <input id="grid-height" type="number" min="20" max="30" value="25" />
+          </div>
+          <div class="slider-row">
+            <input id="grid-height-slider" type="range" class="slider" min="20" max="30" value="25" />
+            <span id="grid-height-slider-value" class="slider-value">25</span>
+          </div>
+          <button id="generate-btn" class="primary-btn" data-i18n="generate">Generate Grid</button>
+          <p id="setup-error" class="error-text"></p>
+        </div>
+
+        <div class="settings-col settings-col-process">
+          <h3 class="section-title" data-i18n="processTime">Process time</h3>
+          <div class="process-grid">
+            <div class="process-op">
+              <div class="field-row">
+                <label for="op-checkin-mean" data-i18n="opCheckinMean">Check-in mean (s)</label>
+                <input id="op-checkin-mean" type="number" min="5" max="300" value="90" />
+              </div>
+              <div class="slider-row">
+                <input id="op-checkin-mean-slider" type="range" class="slider" min="5" max="300" value="90" />
+                <span id="op-checkin-mean-slider-value" class="slider-value">90</span>
+              </div>
+              <div class="field-row">
+                <label for="op-checkin-std" data-i18n="opCheckinStd">Check-in std (s)</label>
+                <input id="op-checkin-std" type="number" min="0" max="150" value="45" />
+              </div>
+              <div class="slider-row">
+                <input id="op-checkin-std-slider" type="range" class="slider" min="0" max="150" value="45" />
+                <span id="op-checkin-std-slider-value" class="slider-value">45</span>
+              </div>
+            </div>
+
+            <div class="process-op">
+              <div class="field-row">
+                <label for="op-pass-mean" data-i18n="opPassMean">Boarding pass print mean (s)</label>
+                <input id="op-pass-mean" type="number" min="5" max="300" value="20" />
+              </div>
+              <div class="slider-row">
+                <input id="op-pass-mean-slider" type="range" class="slider" min="5" max="300" value="20" />
+                <span id="op-pass-mean-slider-value" class="slider-value">20</span>
+              </div>
+              <div class="field-row">
+                <label for="op-pass-std" data-i18n="opPassStd">Boarding pass print std (s)</label>
+                <input id="op-pass-std" type="number" min="0" max="150" value="10" />
+              </div>
+              <div class="slider-row">
+                <input id="op-pass-std-slider" type="range" class="slider" min="0" max="150" value="10" />
+                <span id="op-pass-std-slider-value" class="slider-value">10</span>
+              </div>
+            </div>
+
+            <div class="process-op">
+              <div class="field-row">
+                <label for="op-tag-mean" data-i18n="opTagMean">Baggage tag print mean (s)</label>
+                <input id="op-tag-mean" type="number" min="5" max="300" value="20" />
+              </div>
+              <div class="slider-row">
+                <input id="op-tag-mean-slider" type="range" class="slider" min="5" max="300" value="20" />
+                <span id="op-tag-mean-slider-value" class="slider-value">20</span>
+              </div>
+              <div class="field-row">
+                <label for="op-tag-std" data-i18n="opTagStd">Baggage tag print std (s)</label>
+                <input id="op-tag-std" type="number" min="0" max="150" value="10" />
+              </div>
+              <div class="slider-row">
+                <input id="op-tag-std-slider" type="range" class="slider" min="0" max="150" value="10" />
+                <span id="op-tag-std-slider-value" class="slider-value">10</span>
+              </div>
+            </div>
+
+            <div class="process-op">
+              <div class="field-row">
+                <label for="op-drop-mean" data-i18n="opDropMean">Baggage drop mean (s)</label>
+                <input id="op-drop-mean" type="number" min="5" max="300" value="80" />
+              </div>
+              <div class="slider-row">
+                <input id="op-drop-mean-slider" type="range" class="slider" min="5" max="300" value="80" />
+                <span id="op-drop-mean-slider-value" class="slider-value">80</span>
+              </div>
+              <div class="field-row">
+                <label for="op-drop-std" data-i18n="opDropStd">Baggage drop std (s)</label>
+                <input id="op-drop-std" type="number" min="0" max="150" value="40" />
+              </div>
+              <div class="slider-row">
+                <input id="op-drop-std-slider" type="range" class="slider" min="0" max="150" value="40" />
+                <span id="op-drop-std-slider-value" class="slider-value">40</span>
+              </div>
+            </div>
+
+            <div class="process-op">
+              <div class="field-row">
+                <label for="mood-happy" data-i18n="moodHappy">Happy mood under (min)</label>
+                <input id="mood-happy" type="number" min="1" max="15" value="3" />
+              </div>
+              <div class="slider-row">
+                <input id="mood-happy-slider" type="range" class="slider" min="1" max="15" value="3" />
+                <span id="mood-happy-slider-value" class="slider-value">3</span>
+              </div>
+              <div class="field-row">
+                <label for="mood-angry" data-i18n="moodAngry">Angry mood over (min)</label>
+                <input id="mood-angry" type="number" min="1" max="30" value="8" />
+              </div>
+              <div class="slider-row">
+                <input id="mood-angry-slider" type="range" class="slider" min="1" max="30" value="8" />
+                <span id="mood-angry-slider-value" class="slider-value">8</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="startup-overlay">
+    <!-- Step 1: choose language (options at the bottom) -->
+    <section id="startup-lang" class="startup-step">
+      <div class="startup-hero">
+        <div class="startup-title">Airport Grid Simulator</div>
+        <div class="startup-tagline">Uçuş öncesi terminal simülasyonu</div>
+      </div>
+
+      <!-- self-service kiosk: the exact reference artwork (extracted from
+           EntryPage.pdf, first/top kiosk), rotated 90° so the logo lands on
+           top — not a redrawn approximation. -->
+      <div class="kiosk-frame">
+        <img class="kiosk-chassis" src="kiosk.png" alt="" aria-hidden="true">
+        <div class="kiosk-screen">
+          <div class="startup-lang-picker">
+            <div class="startup-prompt">Choose your language &middot; Dilinizi seçin</div>
+            <div class="startup-lang-row">
+              <button class="startup-lang-btn" data-lang="en">
+                <svg viewBox="0 0 60 30" class="flag">
+                  <clipPath id="uk-clip2"><path d="M0,0 v30 h60 v-30 z"/></clipPath>
+                  <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+                  <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+                  <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#uk-clip2)" stroke="#C8102E" stroke-width="4"/>
+                  <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+                  <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+                </svg>
+                <span>English</span>
+              </button>
+              <button class="startup-lang-btn" data-lang="tr">
+                <svg viewBox="0 0 60 30" class="flag">
+                  <rect width="60" height="30" fill="#E30A17"/>
+                  <circle cx="22" cy="15" r="8" fill="#fff"/>
+                  <circle cx="24" cy="15" r="6.4" fill="#E30A17"/>
+                  <polygon fill="#fff" points="37,15 34.3,15.94 34.24,18.8 32.5,16.52 29.76,17.35 31.4,15 29.76,12.65 32.5,13.48 34.24,11.2 34.3,14.06"/>
+                </svg>
+                <span>Türkçe</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 2: assumptions in the chosen language -->
+    <section id="startup-assumptions" class="startup-step hidden">
+      <div class="startup-assumptions-panel">
+        <h2 data-i18n="assumptions">Assumptions</h2>
+        <ul id="startup-assumptions-list" class="assumptions-list"></ul>
+        <button id="startup-tileops-next" class="primary-btn" data-i18n="startNext">Next</button>
+      </div>
+    </section>
+
+    <!-- Step 3: tile operations, preselected to the default set -->
+    <section id="startup-tileops" class="startup-step hidden">
+      <div class="startup-assumptions-panel tileops-panel">
+        <h2 data-i18n="tileOpsTitle">Tile Operations</h2>
+        <p class="usage-note" data-i18n="tileOpsNote">Which operations each tile type can perform. Locked (greyed-out) boxes are either physically impossible for that machine, or — for the staffed counter — always on, since it handles everything by design.</p>
+        <div id="startup-tile-ops-body"><!-- populated by buildTileOpsGrid() in app.js --></div>
+        <button id="startup-continue" class="primary-btn" data-i18n="startContinue">Continue to simulation</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- app.js is split by theme (each file <=1000 lines); these are classic
+       scripts sharing one global scope, so load order matters -->
+  <script src="app.config.js"></script>
+  <script src="app.editor.js"></script>
+  <script src="app.boarding.js"></script>
+  <script src="app.simulation.js"></script>
+  <script src="app.reports.js"></script>
+  <script src="app.startup.js"></script>
+</body>
+</html>
